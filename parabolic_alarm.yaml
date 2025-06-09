@@ -1,6 +1,6 @@
 blueprint:
   name: Parabolic Alarm Automation
-  description: Turn a light on based on a start time, whether it is a workday, and whether a person is home. This is to match the sunrise and allow for a natural wake-up.
+  description: Turn a light on with a parabolic sunrise effect at a specified time, considering workday and person presence.
   domain: automation
   input:
     pre_action:
@@ -11,18 +11,12 @@ blueprint:
         action: {}
     alarm_start_time:
       name: Start Time
-      description: Time to start the alarm (e.g., 06:30). The automation will trigger daily at this time.
+      description: Time to start the alarm (e.g., 06:30). The automation triggers daily at this exact time.
       selector:
         time:
-    offset_from_start_time:
-      name: 🏁 Offset From Start Time
-      description: Adjust the time before or after the Start Time to begin the transition. Enter seconds or HH:MM:SS (e.g., "-00:05:00" for 5 minutes before). See https://www.home-assistant.io/docs/automation/trigger/#sensors-of-datetime-device-class-with-offsets for caution about positive offsets.
-      default: "-00:00:00"
-      selector:
-        text:
     workday_sensor:
       name: 📆 Workday Sensor (Optional)
-      description: Optional Binary Sensor to restrict the automation (e.g., run only on workdays). Leave empty to run every day. See https://www.home-assistant.io/integrations/workday/ for details.
+      description: Optional binary sensor to restrict the automation (e.g., run only on workdays). Leave empty to run every day.
       selector:
         entity:
           filter:
@@ -31,7 +25,7 @@ blueprint:
       default: null
     person_sensor:
       name: 👤 Person Sensor (Optional)
-      description: Optional Person entity to restrict the automation (e.g., run only when this person is home). Leave empty to run regardless of presence. See https://www.home-assistant.io/integrations/person/ for details.
+      description: Optional person entity to restrict the automation (e.g., run only when this person is home). Leave empty to run regardless of presence.
       selector:
         entity:
           filter:
@@ -40,141 +34,141 @@ blueprint:
       default: null
     alarm_script:
       name: 📄 Script to Trigger
-      description: Light Alarm Script
+      description: The script that creates the parabolic light effect.
       selector:
         entity:
           filter:
             domain: script
           multiple: false
     target_light:
-      name: 💡 Lights
-      description: The light(s) with kelvin support
+      name: 💡 Target Light
+      description: The light entity to control (must support color temperature).
       selector:
         entity:
           filter:
             domain: light
           multiple: false
     light_timeout:
-      name: ⏱️ Timeout
-      description: Light will turn off after this time on last run. Set to 0 to leave the light on.
+      name: ⏱️ Timeout (minutes)
+      description: Time after the last phase before the light turns off. Set to 0 to leave the light on.
       default: 10
       selector:
         number:
-          min: 0.0
-          max: 60.0
-          step: 1.0
+          min: 0
+          max: 60
+          step: 1
           mode: slider
     steps_per_minute:
       name: 🏃‍♂️ Steps per Minute
-      description: Number of steps per minute for brightness and color temperature transitions
+      description: Number of steps per minute for brightness and color temperature transitions.
       default: 12
       selector:
         number:
-          min: 1.0
-          max: 60.0
-          step: 1.0
+          min: 1
+          max: 60
+          step: 1
           mode: slider
     start_brightness:
-      name: ⭐️ Start Brightness
-      description: Starting brightness percentage
+      name: ⭐️ Start Brightness (%)
+      description: Initial brightness percentage when the light turns on.
+      default: 1
       selector:
         number:
-          min: 1.0
-          max: 100.0
-          step: 1.0
+          min: 1
+          max: 100
+          step: 1
           mode: slider
-      default: 1.0
     start_kelvin_temp:
-      name: ☀️ Starting Kelvin
-      description: Starting Kelvin value (warm) for first run
+      name: ☀️ Start Kelvin
+      description: Initial color temperature (Kelvin) for a warm start.
+      default: 2500
       selector:
         color_temp:
           unit: kelvin
-      default: 2500
     target_kelvin_1:
       name: ☀️ Target Kelvin 1
-      description: Target Kelvin value (cold) for the end of the first run
+      description: Target color temperature (Kelvin) at the end of phase 1.
+      default: 3000
       selector:
         color_temp:
           unit: kelvin
-      default: 3000
     max_brightness_1:
-      name: ⭐️ Maximum Brightness 1
-      description: Brightness percentage for the end of the first run
+      name: ⭐️ Max Brightness 1 (%)
+      description: Maximum brightness percentage at the end of phase 1.
+      default: 10
       selector:
         number:
-          min: 1.0
-          max: 100.0
-          step: 1.0
+          min: 1
+          max: 100
+          step: 1
           mode: slider
-      default: 10
     alarm_length_1:
-      name: ⏰ Alarm Length 1
-      description: Duration (minutes) for the first run
+      name: ⏰ Phase 1 Duration (minutes)
+      description: Duration of the first phase.
+      default: 10
       selector:
         number:
-          min: 1.0
-          max: 60.0
-          step: 1.0
+          min: 1
+          max: 60
+          step: 1
           mode: slider
-      default: 10
     target_kelvin_2:
       name: 🌗 Target Kelvin 2
-      description: Target Kelvin value (cold) for the end of the second run
+      description: Target color temperature (Kelvin) at the end of phase 2.
+      default: 4000
       selector:
         color_temp:
           unit: kelvin
-      default: 4000
     max_brightness_2:
-      name: ⭐️ Maximum Brightness 2
-      description: Brightness percentage for the end of the second run
-      selector:
-        number:
-          min: 1.0
-          max: 100.0
-          step: 1.0
-          mode: slider
+      name: ⭐️ Max Brightness 2 (%)
+      description: Maximum brightness percentage at the end of phase 2.
       default: 50
-    alarm_length_2:
-      name: ⏰ Alarm Length 2
-      description: Duration (minutes) for the second run
       selector:
         number:
-          min: 1.0
-          max: 60.0
-          step: 1.0
+          min: 1
+          max: 100
+          step: 1
           mode: slider
+    alarm_length_2:
+      name: ⏰ Phase 2 Duration (minutes)
+      description: Duration of the second phase.
       default: 10
+      selector:
+        number:
+          min: 1
+          max: 60
+          step: 1
+          mode: slider
     target_kelvin_3:
       name: 🌑 Target Kelvin 3
-      description: Target Kelvin value (cold) for the end of the third run
+      description: Target color temperature (Kelvin) at the end of phase 3.
+      default: 6500
       selector:
         color_temp:
           unit: kelvin
-      default: 6500
     max_brightness_3:
-      name: ⭐️ Maximum Brightness 3
-      description: Brightness percentage for the end of the third run
-      selector:
-        number:
-          min: 1.0
-          max: 100.0
-          step: 1.0
-          mode: slider
+      name: ⭐️ Max Brightness 3 (%)
+      description: Maximum brightness percentage at the end of phase 3.
       default: 100
-    alarm_length_3:
-      name: ⏰ Alarm Length 3
-      description: Duration (minutes) for the third run
       selector:
         number:
-          min: 1.0
-          max: 60.0
-          step: 1.0
+          min: 1
+          max: 100
+          step: 1
           mode: slider
+    alarm_length_3:
+      name: ⏰ Phase 3 Duration (minutes)
+      description: Duration of the third phase.
       default: 5
+      selector:
+        number:
+          min: 1
+          max: 60
+          step: 1
+          mode: slider
     post_action:
       name: 🎮 Post Script Action
-      description: An action to run after the script has finished
+      description: An action to perform after the alarm phases complete.
       default: []
       selector:
         action: {}
@@ -182,7 +176,6 @@ blueprint:
 trigger:
   - trigger: time
     at: !input alarm_start_time
-    offset: !input offset_from_start_time
 condition:
   - condition: and
     conditions:
@@ -201,51 +194,53 @@ condition:
             entity_id: !input person_sensor
             state: "home"
 action:
-  - !input pre_action
+  - choose:
+      - conditions: []
+        sequence: !input pre_action
   - action: light.turn_on
     data:
-      color_temp_kelvin: !input start_kelvin_temp
-      brightness_pct: !input start_brightness
       entity_id: !input target_light
+      brightness_pct: !input start_brightness
+      color_temp_kelvin: !input start_kelvin_temp
   - delay:
       seconds: 5
   - action: !input alarm_script
     data:
-      target_kelvin: !input target_kelvin_1
+      target_light: !input target_light
       start_kelvin: !input start_kelvin_temp
+      target_kelvin: !input target_kelvin_1
       max_brightness_pct: !input max_brightness_1
       alarm_length: !input alarm_length_1
       steps_per_minute: !input steps_per_minute
       light_timeout: 0
-      target_light: !input target_light
   - if:
       - condition: state
-        state: "on"
         entity_id: !input target_light
+        state: "on"
     then:
       - action: !input alarm_script
         data:
-          target_kelvin: !input target_kelvin_2
+          target_light: !input target_light
           start_kelvin: !input target_kelvin_1
+          target_kelvin: !input target_kelvin_2
           max_brightness_pct: !input max_brightness_2
           alarm_length: !input alarm_length_2
           steps_per_minute: !input steps_per_minute
           light_timeout: 0
-          target_light: !input target_light
   - if:
       - condition: state
-        state: "on"
         entity_id: !input target_light
+        state: "on"
     then:
       - action: !input alarm_script
         data:
-          target_kelvin: !input target_kelvin_3
+          target_light: !input target_light
           start_kelvin: !input target_kelvin_2
+          target_kelvin: !input target_kelvin_3
           max_brightness_pct: !input max_brightness_3
           alarm_length: !input alarm_length_3
           steps_per_minute: !input steps_per_minute
           light_timeout: !input light_timeout
-          target_light: !input target_light
       - choose:
           - conditions: []
             sequence: !input post_action
