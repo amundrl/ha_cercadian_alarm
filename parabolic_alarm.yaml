@@ -5,7 +5,7 @@ blueprint:
   input:
     pre_action:
       name: 🎮 Pre Script Action
-      description: An action to perform before the lights turn on.
+      description: An optional action to perform before the lights turn on.
       default: []
       selector:
         action: {}
@@ -176,34 +176,14 @@ blueprint:
 trigger:
   - trigger: time
     at: !input alarm_start_time
-condition:
-  - condition: and
-    conditions:
-      - condition: or
-        conditions:
-          - condition: template
-            value_template: "{{ input('workday_sensor') == None }}"
-          - condition: and
-            conditions:
-              - condition: template
-                value_template: "{{ input('workday_sensor') != None }}"
-              - condition: state
-                entity_id: !input workday_sensor
-                state: "on"
-      - condition: or
-        conditions:
-          - condition: template
-            value_template: "{{ input('person_sensor') == None }}"
-          - condition: and
-            conditions:
-              - condition: template
-                value_template: "{{ input('person_sensor') != None }}"
-              - condition: state
-                entity_id: !input person_sensor
-                state: "home"
+variables:
+  workday_or_null: "{{ input('workday_sensor') == None or is_state(input('workday_sensor'), 'on') }}"
+  person_or_null: "{{ input('person_sensor') == None or is_state(input('person_sensor'), 'home') }}"
 action:
   - choose:
-      - conditions: []
+      - conditions:
+          - "{{ workday_or_null }}"
+          - "{{ person_or_null }}"
         sequence: !input pre_action
   - action: light.turn_on
     data:
