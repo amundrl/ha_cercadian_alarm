@@ -183,16 +183,24 @@ condition:
         conditions:
           - condition: template
             value_template: "{{ input('workday_sensor') == None }}"
-          - condition: state
-            entity_id: !input workday_sensor
-            state: "on"
+          - condition: and
+            conditions:
+              - condition: template
+                value_template: "{{ input('workday_sensor') != None }}"
+              - condition: state
+                entity_id: !input workday_sensor
+                state: "on"
       - condition: or
         conditions:
           - condition: template
             value_template: "{{ input('person_sensor') == None }}"
-          - condition: state
-            entity_id: !input person_sensor
-            state: "home"
+          - condition: and
+            conditions:
+              - condition: template
+                value_template: "{{ input('person_sensor') != None }}"
+              - condition: state
+                entity_id: !input person_sensor
+                state: "home"
 action:
   - choose:
       - conditions: []
