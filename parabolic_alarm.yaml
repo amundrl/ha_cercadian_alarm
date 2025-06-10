@@ -14,24 +14,6 @@ blueprint:
       description: Time to start the alarm (e.g., 06:30). The automation triggers daily at this exact time.
       selector:
         time:
-    workday_sensor:
-      name: 📆 Workday Sensor (Optional)
-      description: Optional binary sensor to restrict the automation (e.g., run only on workdays). Leave empty to run every day.
-      selector:
-        entity:
-          filter:
-            domain: binary_sensor
-          multiple: false
-      default: null
-    person_sensor:
-      name: 👤 Person Sensor (Optional)
-      description: Optional person entity to restrict the automation (e.g., run only when this person is home). Leave empty to run regardless of presence.
-      selector:
-        entity:
-          filter:
-            domain: person
-          multiple: false
-      default: null
     alarm_script:
       name: 📄 Script to Trigger
       description: The script that creates the parabolic light effect.
@@ -178,9 +160,6 @@ blueprint:
 trigger:
   - trigger: time
     at: !input alarm_start_time
-condition:
-  - "{{ is_none(input('workday_sensor')) or is_state(input('workday_sensor'), 'on') }}"
-  - "{{ is_none(input('person_sensor')) or is_state(input('person_sensor'), 'home') }}"
 action:
   - choose:
       - conditions: []
