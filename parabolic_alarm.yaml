@@ -49,24 +49,26 @@ blueprint:
             domain: light
           multiple: false
     light_timeout:
-      name: ⏱️ Timeout (minutes)
-      description: Time after the last phase before the light turns off. Set to 0 to leave the light on.
+      name: ⏱️ Timeout
+      description: Light will turn off after this time on last run. Setting this to 0 will leave the light on.
       default: 10
       selector:
         number:
-          min: 0
-          max: 60
-          step: 1
+          min: 0.0
+          max: 60.0
+          step: 1.0
           mode: slider
     steps_per_minute:
-      name: 🏃‍♂️ Steps per Minute
-      description: Number of steps per minute for brightness and color temperature transitions.
+      name: 🏃‍♂️ Steps per minute for all runs
+      description:
+        Used for configuring percentage of each step for brightness and
+        color temperature
       default: 12
       selector:
         number:
-          min: 1
-          max: 60
-          step: 1
+          min: 1.0
+          max: 60.0
+          step: 1.0
           mode: slider
     start_brightness:
       name: ⭐️ Start Brightness (%)
@@ -176,59 +178,57 @@ blueprint:
 trigger:
   - trigger: time
     at: !input alarm_start_time
-variables:
-  workday_or_null: "{{ input('workday_sensor') == None or is_state(input('workday_sensor'), 'on') }}"
-  person_or_null: "{{ input('person_sensor') == None or is_state(input('person_sensor'), 'home') }}"
+condition:
+  - "{{ is_none(input('workday_sensor')) or is_state(input('workday_sensor'), 'on') }}"
+  - "{{ is_none(input('person_sensor')) or is_state(input('person_sensor'), 'home') }}"
 action:
   - choose:
-      - conditions:
-          - "{{ workday_or_null }}"
-          - "{{ person_or_null }}"
+      - conditions: []
         sequence: !input pre_action
   - action: light.turn_on
     data:
-      entity_id: !input target_light
-      brightness_pct: !input start_brightness
       color_temp_kelvin: !input start_kelvin_temp
+      brightness_pct: !input start_brightness
+      entity_id: !input target_light
   - delay:
       seconds: 5
   - action: !input alarm_script
     data:
-      target_light: !input target_light
-      start_kelvin: !input start_kelvin_temp
       target_kelvin: !input target_kelvin_1
+      start_kelvin: !input start_kelvin_temp
       max_brightness_pct: !input max_brightness_1
       alarm_length: !input alarm_length_1
       steps_per_minute: !input steps_per_minute
       light_timeout: 0
+      target_light: !input target_light
   - if:
       - condition: state
-        entity_id: !input target_light
         state: "on"
+        entity_id: !input target_light
     then:
       - action: !input alarm_script
         data:
-          target_light: !input target_light
-          start_kelvin: !input target_kelvin_1
           target_kelvin: !input target_kelvin_2
+          start_kelvin: !input target_kelvin_1
           max_brightness_pct: !input max_brightness_2
           alarm_length: !input alarm_length_2
           steps_per_minute: !input steps_per_minute
           light_timeout: 0
+          target_light: !input target_light
   - if:
       - condition: state
-        entity_id: !input target_light
         state: "on"
+        entity_id: !input target_light
     then:
       - action: !input alarm_script
         data:
-          target_light: !input target_light
-          start_kelvin: !input target_kelvin_2
           target_kelvin: !input target_kelvin_3
+          start_kelvin: !input target_kelvin_2
           max_brightness_pct: !input max_brightness_3
           alarm_length: !input alarm_length_3
           steps_per_minute: !input steps_per_minute
           light_timeout: !input light_timeout
+          target_light: !input target_light
       - choose:
           - conditions: []
             sequence: !input post_action
